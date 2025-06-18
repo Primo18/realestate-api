@@ -1,0 +1,45 @@
+name: API CI - RealEstate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Test API en Node.js ${{ matrix.node }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node: [16.x, 18.x]
+
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v3
+
+      - name: Instalar pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node }}
+          cache: 'pnpm'
+
+      - name: Instalar dependencias
+        run: pnpm install --frozen-lockfile
+
+      - name: Ejecutar pruebas con Vitest
+        run: pnpm test
+
+      - name: Reportar éxito
+        if: success()
+        run: echo "✅ API funcional en Node ${{ matrix.node }}"
+
+      - name: Reportar error
+        if: failure()
+        run: echo "❌ Falla detectada en los tests para Node ${{ matrix.node }}"
